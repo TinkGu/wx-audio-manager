@@ -27,16 +27,6 @@
     "release": "standard-version",
     "postpublish": "git push origin HEAD --follow-tags"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts,tsx}": [
-      "eslint --ext js,ts,tsx --fix"
-    ]
-  },
   "keywords": [
     "wx",
     "weixin",
