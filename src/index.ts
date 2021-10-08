@@ -216,12 +216,8 @@ export class AudioManager {
     rawManager.startTime = startTime;
     rawManager.coverImgUrl = newAm.coverImgUrl || '';
     rawManager.title = newAm.title || DEFAULT_MANAGER_INFO.title; // NOTE: 必须在播放前设置，否则真机无法播放
-    // NOTE: 安卓上，对于同一个音频，重新 play 会触发 stop 导致无法继续播放，必须重设一个新的 src
-    if (PLATFORM === 'android') {
-      rawManager.src = `${newAm.src}?_uid=${Math.random()}`; // 使微信认为是两个不同的音频
-    } else {
-      rawManager.src = newAm.src!; // 设置 src 后自动播放
-    }
+    // NOTE: 对于同一个音频，重新 play 会触发 stop 导致无法继续播放，必须重设一个新的 src
+    rawManager.src = `${newAm.src}?_uid=${Math.random()}`; // 使微信认为是两个不同的音频
   }
 
   /**
