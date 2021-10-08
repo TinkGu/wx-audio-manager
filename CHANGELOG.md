@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/TinkGu/wx-audio-manager/compare/v1.2.1...v1.2.2) (2021-10-08)
+
+
+### Bug Fixes
+
+* 修复微信基础库升级到 2.20.0 以后，拖动音频 seek 播放失效的问题 ([78d4906](https://github.com/TinkGu/wx-audio-manager/commit/78d490686baf44140381b3968fc7b86d9ef3c5da))
+
 ### [1.2.1](https://github.com/TinkGu/wx-audio-manager/compare/v1.2.0...v1.2.1) (2021-06-29)
 
 ## 1.2.0 (2021-06-29)
