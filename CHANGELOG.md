@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/TinkGu/wx-audio-manager/compare/v1.2.2...v1.3.0) (2021-10-14)
+
+
+### Features
+
+* 新增暴露格式化接口 getFormattedAudioInfo ([1e32e0a](https://github.com/TinkGu/wx-audio-manager/commit/1e32e0a04be75a60e924c50ce5b9d9f08b7fb131))
+* 优化文档和注释 ([21056bb](https://github.com/TinkGu/wx-audio-manager/commit/21056bb9c7f8937ba63751ebe13a2bab6193eeba))
+
+
+### Bug Fixes
+
+* 修复 mac 端 duration 秒数单位超大的问题；修复电脑端不支持拖动、暂停恢复的问题 ([fa1bdd0](https://github.com/TinkGu/wx-audio-manager/commit/fa1bdd016ac53238add67d971221180420f485db))
+
 ### [1.2.2](https://github.com/TinkGu/wx-audio-manager/compare/v1.2.1...v1.2.2) (2021-10-08)
 
 
