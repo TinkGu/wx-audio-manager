@@ -109,10 +109,10 @@ export function getFormattedAudioInfo(am: AudioManagerInfo) {
   const rawPlayRate = percent(am.currentTime, am.duration);
   return {
     ...am,
-    countdown: formatTimeString(am.duration - am.currentTime),
-    startSec: formatTimeString(am.currentTime),
-    durationSec: formatTimeString(am.duration),
-    countdownSec: Math.floor(am.duration - am.currentTime) || 0,
-    playRate: toLazyFixed(rawPlayRate, 2),
+    countdown: formatTimeString(am.duration - am.currentTime), // 倒计时，hh:mm:ss 格式字符串
+    countdownSec: Math.floor(am.duration - am.currentTime) || 0, // 倒计时，数字，单位秒
+    startSec: formatTimeString(am.currentTime), // 当前进度，数字，单位秒
+    durationSec: formatTimeString(am.duration), // 总时长，数字，单位秒
+    playRate: toLazyFixed(rawPlayRate, 2), // 当前播放了百分之多少，常用于进度条
   };
 }

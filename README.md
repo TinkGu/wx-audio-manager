@@ -93,7 +93,7 @@ AudioManager.play({
 
 ### AudioManager.on
 
-`function on(callbacks: AudiManagerEvents): () => void`
+`function on(callbacks: AudioManagerEvents): () => void`
 
 ```typescript
 type AudioManagerEvents = {
@@ -118,3 +118,42 @@ const off = AudioManager.on({
   },
 });
 ```
+
+## 其他工具方法
+
+### `AUDIO_STATUS`
+
+音频状态枚举
+
+```typescript
+enum AUDIO_STATUS {
+  INITIAL = 1, // 完全初始状态，还没有 src，无法播放
+  PLAYING = 3, // 正在播放
+  WAITING = 4, // 正在缓冲
+  PAUSED = 5, // 已暂停
+  ENDED = 6, // 播放到结尾
+  STOP = 7, // 中断播放，可能是直接关闭了播放器，或者切换了音频
+  ERROR = 8, // 音频错误
+  PRE_ENDED = 9, // 即将终止
+}
+```
+
+### `getFormattedAudioInfo`
+
+`function getFormattedAudioInfo(am: AudioManagerInfo): AudioManagerInfoExtra`
+
+在 AudioManagerInfo 基础上，额外返回一些信息，便于播放器渲染时使用
+
+```typescript
+countdown; // 倒计时，hh:mm:ss 格式字符串
+countdownSec; // 倒计时，数字，单位秒
+startSec; // 当前进度，数字，单位秒
+durationSec; // 总时长，数字，单位秒
+playRate; // 当前播放了百分之多少，常用于进度条
+```
+
+### `formatTimeString`
+
+`function formatTimeString(n: number): string`
+
+输入秒数，返回 `hh:mm:ss` 的格式化字符串
