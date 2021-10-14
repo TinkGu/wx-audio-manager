@@ -14,8 +14,13 @@ module.exports = {
   },
   rules: {
     camelcase: 'off',
+    'prefer-const': 'off',
+    'prefer-spread': 'off',
+    'prefer-object-spread': 'off',
+    'consistent-return': 'off',
     'no-use-before-define': 'off',
     'no-underscore-dangle': 'off',
+    'no-unused-expressions': 'off',
     'no-bitwise': 'off',
     'no-restricted-syntax': 'off',
     'import/no-extraneous-dependencies': 'off',

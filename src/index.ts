@@ -1,21 +1,20 @@
-import { DEFAULT_MANAGER_INFO, WHITE_AM_KEYS, EVENT_NAMES, AUDIO_STATUS } from './constants';
+import { DEFAULT_MANAGER_INFO, WHITE_AM_KEYS, EVENT_NAMES, AUDIO_STATUS, PLATFORM_NAME } from './constants';
 import { AnyFunction, EventEmitter } from './event-emitter';
 import { AudioManagerEvents, AudioManagerInfo } from './types';
 import { isValidProgress, throttle, ensureStartTime, logAm, formatTimeString } from './utils';
 
 let rawManager: WechatMiniprogram.BackgroundAudioManager;
 // NOTE: wx.getBackgroundAudioManager() 并不会返回 title、startTime 等字段，需要自行维护
-let curAmInfo: Partial<AudioManagerInfo> = Object.assign(
-  {
-    src: '',
-    status: AUDIO_STATUS.INITIAL,
-    // duration: 只会在更换音频或 timeupdate 中改变
-  },
-  DEFAULT_MANAGER_INFO,
-);
+let curAmInfo: Partial<AudioManagerInfo> = {
+  // duration: 只会在更换音频或 timeupdate 中改变
+  status: AUDIO_STATUS.INITIAL,
+  ...DEFAULT_MANAGER_INFO,
+};
 let lastUpdate = {}; // 上一次 update 事件传递的数据
 let _stopLaterTimer = 0; // 延迟停止播放的计时器
-let PLATFORM = wx.getSystemInfoSync().platform;
+const PLATFORM = wx.getSystemInfoSync().platform;
+const isWxThrottled = PLATFORM === PLATFORM_NAME.android || PLATFORM === PLATFORM_NAME.mac; // 微信是否已经内置了 timeUpdate 节流
+const isDesktop = PLATFORM === PLATFORM_NAME.windows || PLATFORM === PLATFORM_NAME.mac; // 是否桌面端
 
 /**
  * 每次 src 变更时调用，
@@ -39,8 +38,8 @@ function onSrcUpdate(nextManager: Partial<AudioManagerInfo>, lastManager: Partia
 
 function emitUpdate(ename: string) {
   const manager = AudioManager.get();
-  // const { duration, currentTime, status, src } = manager
-  // ename !== 'timeUpdate' && console.log('update', ename, { duration, currentTime, status, src })
+  // const { duration, currentTime, status, src } = manager;
+  // ename !== 'timeUpdate' && console.log('update', ename, { duration, currentTime, status, src });
 
   if (!manager.duration) {
     return;
@@ -88,8 +87,20 @@ export class AudioManager {
     // call 了 play() 或重设了 src，但是还需要一些时间才能切到 playing，所以不使用它来标志正在播放
     rawManager.onPlay(() => {});
 
+    // NOTE: 对于电脑来说，设置 startTime 无效，必须使用原生 seek
+    // 而 seek 必须在播放状态中才能调用
+    rawManager.onCanplay(() => {
+      const startTime = curAmInfo.currentTime;
+      if (isDesktop && startTime) {
+        rawManager.currentTime = startTime;
+        rawManager.seek(startTime);
+      }
+    });
+
     const onTimeUpdate = () => {
-      const { buffered, currentTime, duration: rawDuration } = rawManager;
+      const { buffered, currentTime, duration: _rawDuration } = rawManager;
+      // NOTE: 当前 mac 微信客户端（3.2.0），返回的 duration 时长过大，需要手动换算
+      const rawDuration = PLATFORM === PLATFORM_NAME.mac ? ~~(_rawDuration / 44100) : _rawDuration;
       const duration = rawDuration || curAmInfo.duration || 0; // 微信有时无法返回 duration，此时使用后端给的 duration
       if (duration > 0) {
         _setAmInfo({
@@ -101,11 +112,11 @@ export class AudioManager {
       }
     };
     // NOTE: 仅对安卓平台进行节流，iOS 微信已自动节流过
-    rawManager.onTimeUpdate(PLATFORM === 'android' ? throttle(onTimeUpdate, 600) : onTimeUpdate);
+    rawManager.onTimeUpdate(isWxThrottled ? throttle(onTimeUpdate, 600) : onTimeUpdate);
     rawManager.onPause(() => {
-      // 由于安卓使用了节流，timeupdate 有时会延迟执行，导致有时暂停后会跳回播放状态（但事实不再播放了）
+      // 针对某些平台，微信自动使用了节流，timeupdate 有时会延迟执行，导致有时暂停后会跳回播放状态（但事实不再播放了）
       // 所以暂停操作对应延迟相应的时间
-      if (PLATFORM === 'android') {
+      if (isWxThrottled) {
         setTimeout(() => {
           commonSave('pause', AUDIO_STATUS.PAUSED);
         }, 500);
@@ -207,7 +218,7 @@ export class AudioManager {
    */
   static play(am: Partial<AudioManagerInfo>) {
     const newAm = AudioManager.set(am)!;
-    let startTime = am.startTime;
+    let { startTime } = am;
     // 暂停后继续播放，如没有 startTime 必须使用 currentTime
     am.status === AUDIO_STATUS.PAUSED && (startTime = startTime || newAm.currentTime);
     startTime = ensureStartTime(startTime, newAm.duration);
@@ -216,8 +227,15 @@ export class AudioManager {
     rawManager.startTime = startTime;
     rawManager.coverImgUrl = newAm.coverImgUrl || '';
     rawManager.title = newAm.title || DEFAULT_MANAGER_INFO.title; // NOTE: 必须在播放前设置，否则真机无法播放
-    // NOTE: 对于同一个音频，重新 play 会触发 stop 导致无法继续播放，必须重设一个新的 src
-    rawManager.src = `${newAm.src}?_uid=${Math.random()}`; // 使微信认为是两个不同的音频
+    if (isDesktop) {
+      // 桌面端不支持 startTime，即不支持从 x 秒开始重新播放，每次重设 src 会强制从 0 开始播放
+      // 所以不能走移动端的 hack，否则无法支持暂停后继续播放
+      rawManager.src = newAm.src!;
+    } else {
+      // NOTE: 在移动端，对于同一个音频，重新 play 会触发 stop 导致无法继续播放，必须重设一个新的 src
+      // 注意，采用这种方式后，「暂停后继续播放」本质上是指定从 x 秒重新开始播放
+      rawManager.src = `${newAm.src}?_uid=${Math.random()}`; // 使微信认为是两个不同的音频
+    }
   }
 
   /**

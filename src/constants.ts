@@ -26,3 +26,9 @@ export const AUDIO_STATUS = {
   ERROR: 8, // 音频错误
   PRE_ENDED: 9, // 即将终止
 };
+export const PLATFORM_NAME = {
+  mac: 'mac',
+  windows: 'windows',
+  ios: 'ios',
+  android: 'android',
+};

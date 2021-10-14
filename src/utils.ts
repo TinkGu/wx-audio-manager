@@ -53,8 +53,8 @@ export function ensureStartTime(startTime?: number, duration?: number): number {
     return 0; // NOTE: 原生接口无法 seek 到 0
   }
 
+  // 如果直接从末尾开始播放，把 startTime 减去一些，否则可能会从头开始播放
   if (duration && duration > 0 && startTime >= duration) {
-    // 如果直接从末尾开始播放，把 startTime 减去 0.1，否则可能会从头开始播放
     return duration - 0.5;
   }
 
