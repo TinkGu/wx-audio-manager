@@ -14,6 +14,7 @@ module.exports = {
   },
   rules: {
     camelcase: 'off',
+    'prefer-template': 'off',
     'prefer-const': 'off',
     'prefer-spread': 'off',
     'prefer-object-spread': 'off',

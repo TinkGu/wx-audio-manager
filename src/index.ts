@@ -1,7 +1,7 @@
 import { DEFAULT_MANAGER_INFO, WHITE_AM_KEYS, EVENT_NAMES, AUDIO_STATUS, PLATFORM_NAME } from './constants';
 import { AnyFunction, EventEmitter } from './event-emitter';
 import { AudioManagerEvents, AudioManagerInfo } from './types';
-import { isValidProgress, throttle, ensureStartTime, logAm, formatTimeString } from './utils';
+import { isValidProgress, throttle, ensureStartTime, logAm, formatTimeString, getFormattedAudioInfo } from './utils';
 
 let rawManager: WechatMiniprogram.BackgroundAudioManager;
 // NOTE: wx.getBackgroundAudioManager() 并不会返回 title、startTime 等字段，需要自行维护
@@ -318,5 +318,5 @@ export class AudioManager {
   }
 }
 
-export { AUDIO_STATUS, isValidProgress, logAm, formatTimeString };
+export { AUDIO_STATUS, isValidProgress, logAm, formatTimeString, getFormattedAudioInfo };
 export type { AudioManagerInfo };
