@@ -87,16 +87,6 @@ export class AudioManager {
     // call 了 play() 或重设了 src，但是还需要一些时间才能切到 playing，所以不使用它来标志正在播放
     rawManager.onPlay(() => {});
 
-    // NOTE: 对于电脑来说，设置 startTime 无效，必须使用原生 seek
-    // 而 seek 必须在播放状态中才能调用
-    rawManager.onCanplay(() => {
-      const startTime = curAmInfo.currentTime;
-      if (isDesktop && startTime) {
-        rawManager.currentTime = startTime;
-        rawManager.seek(startTime);
-      }
-    });
-
     const onTimeUpdate = () => {
       const { buffered, currentTime, duration: _rawDuration } = rawManager;
       // NOTE: 当前 mac 微信客户端（3.2.0），返回的 duration 时长过大，需要手动换算
@@ -219,6 +209,7 @@ export class AudioManager {
   static play(am: Partial<AudioManagerInfo>) {
     const newAm = AudioManager.set(am)!;
     let { startTime } = am;
+    // const isPaused = am.status === AUDIO_STATUS.PAUSED;
     // 暂停后继续播放，如没有 startTime 必须使用 currentTime
     am.status === AUDIO_STATUS.PAUSED && (startTime = startTime || newAm.currentTime);
     startTime = ensureStartTime(startTime, newAm.duration);
@@ -226,14 +217,21 @@ export class AudioManager {
     curAmInfo.currentTime = startTime;
     rawManager.startTime = startTime;
     rawManager.coverImgUrl = newAm.coverImgUrl || '';
-    rawManager.title = newAm.title || DEFAULT_MANAGER_INFO.title; // NOTE: 必须在播放前设置，否则真机无法播放
+    const title = newAm.title || DEFAULT_MANAGER_INFO.title; // NOTE: 必须在播放前设置，否则真机无法播放
+
     if (isDesktop) {
-      // 桌面端不支持 startTime，即不支持从 x 秒开始重新播放，每次重设 src 会强制从 0 开始播放
-      // 所以不能走移动端的 hack，否则无法支持暂停后继续播放
-      rawManager.src = newAm.src!;
+      // 桌面端不支持 startTime 属性，即不支持从 x 秒开始重新播放，所以每次重设 src 只能从 0 开始播放
+      if (rawManager.src !== newAm.src) {
+        rawManager.title = title;
+        rawManager.src = newAm.src!;
+      } else {
+        startTime && rawManager.seek(startTime);
+        rawManager.play(); // 考虑暂停后恢复的场景
+      }
     } else {
       // NOTE: 在移动端，对于同一个音频，重新 play 会触发 stop 导致无法继续播放，必须重设一个新的 src
       // 注意，采用这种方式后，「暂停后继续播放」本质上是指定从 x 秒重新开始播放
+      rawManager.title = title;
       rawManager.src = `${newAm.src}?_uid=${Math.random()}`; // 使微信认为是两个不同的音频
     }
   }
