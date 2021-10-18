@@ -225,7 +225,8 @@ export class AudioManager {
         rawManager.title = title;
         rawManager.src = newAm.src!;
       } else {
-        startTime && rawManager.seek(startTime);
+        // NOTE: windows seek 方法有 bug，暂时禁用
+        PLATFORM === PLATFORM_NAME.mac && startTime && rawManager.seek(startTime);
         rawManager.play(); // 考虑暂停后恢复的场景
       }
     } else {
