@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.2](https://github.com/TinkGu/wx-audio-manager/compare/v1.3.1...v1.3.2) (2021-10-18)
+
+
+### Bug Fixes
+
+* 禁用 windows seek ([4378783](https://github.com/TinkGu/wx-audio-manager/commit/437878337b7a0a6db9fec29a4fe84270cbe1fb78))
+
 ### [1.3.1](https://github.com/TinkGu/wx-audio-manager/compare/v1.3.0...v1.3.1) (2021-10-18)
 
 
