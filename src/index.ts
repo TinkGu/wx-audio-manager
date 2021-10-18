@@ -13,7 +13,7 @@ let curAmInfo: Partial<AudioManagerInfo> = {
 let lastUpdate = {}; // 上一次 update 事件传递的数据
 let _stopLaterTimer = 0; // 延迟停止播放的计时器
 const PLATFORM = wx.getSystemInfoSync().platform;
-const isWxThrottled = PLATFORM === PLATFORM_NAME.android || PLATFORM === PLATFORM_NAME.mac; // 微信是否已经内置了 timeUpdate 节流
+const isNeedThrottle = PLATFORM === PLATFORM_NAME.android || PLATFORM === PLATFORM_NAME.mac; // 是否需要对 timeUpdate 节流
 const isDesktop = PLATFORM === PLATFORM_NAME.windows || PLATFORM === PLATFORM_NAME.mac; // 是否桌面端
 
 /**
@@ -112,11 +112,11 @@ export class AudioManager {
       }
     };
     // NOTE: 仅对安卓平台进行节流，iOS 微信已自动节流过
-    rawManager.onTimeUpdate(isWxThrottled ? throttle(onTimeUpdate, 600) : onTimeUpdate);
+    rawManager.onTimeUpdate(isNeedThrottle ? throttle(onTimeUpdate, 600) : onTimeUpdate);
     rawManager.onPause(() => {
       // 针对某些平台，微信自动使用了节流，timeupdate 有时会延迟执行，导致有时暂停后会跳回播放状态（但事实不再播放了）
       // 所以暂停操作对应延迟相应的时间
-      if (isWxThrottled) {
+      if (isNeedThrottle) {
         setTimeout(() => {
           commonSave('pause', AUDIO_STATUS.PAUSED);
         }, 500);
