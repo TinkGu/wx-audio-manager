@@ -89,8 +89,8 @@ export class AudioManager {
 
     const onTimeUpdate = () => {
       const { buffered, currentTime, duration: _rawDuration } = rawManager;
-      // NOTE: 当前 mac 微信客户端（3.2.0），返回的 duration 时长过大，需要手动换算
-      const rawDuration = PLATFORM === PLATFORM_NAME.mac ? ~~(_rawDuration / 44100) : _rawDuration;
+      // NOTE: 当前 mac 微信客户端（3.2.0），返回的 duration 时长过大，且没有换算规律，因此将信任客户端传入的数据
+      const rawDuration = PLATFORM === PLATFORM_NAME.mac ? curAmInfo.duration : _rawDuration;
       const duration = rawDuration || curAmInfo.duration || 0; // 微信有时无法返回 duration，此时使用后端给的 duration
       if (duration > 0) {
         _setAmInfo({
@@ -209,7 +209,6 @@ export class AudioManager {
   static play(am: Partial<AudioManagerInfo>) {
     const newAm = AudioManager.set(am)!;
     let { startTime } = am;
-    // const isPaused = am.status === AUDIO_STATUS.PAUSED;
     // 暂停后继续播放，如没有 startTime 必须使用 currentTime
     am.status === AUDIO_STATUS.PAUSED && (startTime = startTime || newAm.currentTime);
     startTime = ensureStartTime(startTime, newAm.duration);

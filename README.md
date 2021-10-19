@@ -157,3 +157,8 @@ playRate; // 当前播放了百分之多少，常用于进度条
 `function formatTimeString(n: number): string`
 
 输入秒数，返回 `hh:mm:ss` 的格式化字符串
+
+# 已知问题
+
+目前小程序对 mac、windows 兼容比较差，基于 backgroundAudio 实现的版本中，有若干个无法解决的 bug。
+考虑到桌面端上无所谓是否背景音频，后续可以进行平台识别，改用 innerAudio 来实现桌面端的效果。
