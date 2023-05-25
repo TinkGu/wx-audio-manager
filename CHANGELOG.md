@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.4](https://github.com/TinkGu/wx-audio-manager/compare/v1.3.3...v1.3.4) (2023-05-25)
+
+
+### Bug Fixes
+
+* 修复暂停后再播放，时间会闪烁到 0 的问题；修复点击暂停，暂停之后依旧返回 timeupdate 消息的问题 ([7c0732a](https://github.com/TinkGu/wx-audio-manager/commit/7c0732a5d94c7548e090beec8e9c68e72b35ea56))
+
 ### [1.3.3](https://github.com/TinkGu/wx-audio-manager/compare/v1.3.2...v1.3.3) (2021-10-19)
 
 
