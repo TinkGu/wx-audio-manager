@@ -13,7 +13,6 @@ let curAmInfo: Partial<AudioManagerInfo> = {
 let lastUpdate = {}; // 上一次 update 事件传递的数据
 let _stopLaterTimer = 0; // 延迟停止播放的计时器
 const PLATFORM = wx.getSystemInfoSync().platform;
-const isNeedThrottle = PLATFORM === PLATFORM_NAME.android || PLATFORM === PLATFORM_NAME.mac; // 是否需要对 timeUpdate 节流
 const isDesktop = PLATFORM === PLATFORM_NAME.windows || PLATFORM === PLATFORM_NAME.mac; // 是否桌面端
 
 /**
@@ -92,6 +91,10 @@ export class AudioManager {
       // NOTE: 当前 mac 微信客户端（3.2.0），返回的 duration 时长过大，且没有换算规律，因此将信任客户端传入的数据
       const rawDuration = PLATFORM === PLATFORM_NAME.mac ? curAmInfo.duration : _rawDuration;
       const duration = rawDuration || curAmInfo.duration || 0; // 微信有时无法返回 duration，此时使用后端给的 duration
+      // NOTE: 过滤播放过程中的 0。若设置 startTime 后开始播放，微信会先返回一个 currentTime:0 的消息回来，导致 ui 会先回弹到 0 再回到正常时间，页面看起来会闪烁
+      if (currentTime === 0) {
+        return;
+      }
       if (duration > 0) {
         _setAmInfo({
           buffered,
@@ -101,18 +104,13 @@ export class AudioManager {
         commonSave('timeUpdate', AUDIO_STATUS.PLAYING);
       }
     };
-    // NOTE: 仅对安卓平台进行节流，iOS 微信已自动节流过
-    rawManager.onTimeUpdate(isNeedThrottle ? throttle(onTimeUpdate, 600) : onTimeUpdate);
+    rawManager.onTimeUpdate(throttle(onTimeUpdate, 600));
     rawManager.onPause(() => {
-      // 针对某些平台，微信自动使用了节流，timeupdate 有时会延迟执行，导致有时暂停后会跳回播放状态（但事实不再播放了）
+      // 由于节流，timeupdate 会延迟执行，导致有时暂停后会跳回播放状态（但事实不再播放了）
       // 所以暂停操作对应延迟相应的时间
-      if (isNeedThrottle) {
-        setTimeout(() => {
-          commonSave('pause', AUDIO_STATUS.PAUSED);
-        }, 500);
-        return;
-      }
-      commonSave('pause', AUDIO_STATUS.PAUSED);
+      setTimeout(() => {
+        commonSave('pause', AUDIO_STATUS.PAUSED);
+      }, 500);
     });
     rawManager.onStop(() => {
       _setAmInfo({ src: '' });
